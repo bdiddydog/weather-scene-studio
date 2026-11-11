@@ -1,17 +1,75 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="description" content="See the Delaware Weather Guy Weather Scene Studio in a 30-second demo.">
-<title>Weather Scene Studio | Delaware Weather Guy</title>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@5.6.1/dist/maplibre-gl.css" integrity="sha384-Nq6PQ+9vJPvw7U/VfDELyrWoGQMsy0gi6QShhaSrGzkpF5KkM40csg2leky+YMTd" crossorigin="anonymous"><link rel="stylesheet" href="terrain.css"><title>DWG Weather Scene Studio | Interactive Demo</title>
 <style>
-*{box-sizing:border-box}body{margin:0;background:#0d1b24;color:#edf5f5;font:17px system-ui,sans-serif}main{width:min(1050px,calc(100% - 36px));margin:auto;padding:40px 0}header{border-bottom:1px solid #38525b;padding-bottom:20px}.brand{color:#a8dcc9;letter-spacing:.12em;font-size:.78rem;font-weight:800}h1{font-size:clamp(2.5rem,7vw,5rem);line-height:1;letter-spacing:-.06em;margin:13px 0}p{color:#bdd0d5;line-height:1.55;margin:0}video{display:block;width:100%;max-height:68vh;background:#08141a;border:1px solid #38525b;border-radius:14px;margin:22px 0}section{border-top:1px solid #38525b;padding-top:18px}h2{margin:0 0 6px;font-size:1.3rem}strong,a{color:#a8dcc9}
+*{box-sizing:border-box}body{margin:0;background:#10191d;color:#edf5ef;font:16px system-ui,sans-serif}main{max-width:1420px;margin:auto;padding:35px clamp(16px,4vw,60px)}header{border-bottom:1px solid #34454a;padding-bottom:24px;margin-bottom:24px}.brand{color:#a8dcc9;font-size:.76rem;letter-spacing:.18em;font-weight:750}h1{font-size:clamp(2.5rem,5vw,5rem);letter-spacing:-.07em;line-height:1;margin:10px 0 12px}p{color:#b8c8c7;line-height:1.5;margin:0}.layout{display:grid;grid-template-columns:minmax(270px,340px) minmax(0,1fr);gap:24px}.panel,.viewer{background:#19272c;border:1px solid #34454a;border-radius:17px;overflow:hidden}.panel{padding:22px;align-self:start}label{font-weight:700}textarea{width:100%;height:235px;margin:12px 0;background:#10191d;border:1px solid #52666a;border-radius:9px;padding:13px;color:inherit;font:inherit;line-height:1.45;resize:vertical}button{border:1px solid #52666a;background:#22343a;color:#edf5ef;padding:9px 13px;border-radius:8px;font:inherit;cursor:pointer}button:hover{background:#345057}button:focus-visible,textarea:focus-visible{outline:3px solid #bcf3dd;outline-offset:2px}.primary{background:#a8dcc9;color:#10251d;border-color:#a8dcc9;font-weight:800;width:100%}.primary:hover{background:#c2efdf}.examples,.controls,.stages{display:flex;gap:8px;flex-wrap:wrap}.examples{margin-top:18px}.examples button,.controls button{font-size:.85rem}.stage{padding:12px 15px}.stage[aria-pressed=true]{background:#a8dcc9;color:#10251d;font-weight:700}.viewtop,.viewbottom{padding:14px 17px}.viewtop{display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap}canvas{width:100%;display:block;aspect-ratio:1.75;cursor:grab;touch-action:pan-y;background:#405b6a}.viewbottom p{font-size:.91rem;margin-top:11px}.hint{font-size:.86rem;margin-top:11px}.notice{min-height:1.5em;margin-top:8px;color:#f2cf98}.readout{color:#a8dcc9;font-size:.8rem;font-weight:700;letter-spacing:.05em}@media(max-width:780px){main{padding-top:22px}.layout{grid-template-columns:1fr}textarea{height:150px}}
 </style>
 </head>
-<body><main>
-<header><div class="brand">DELAWARE WEATHER GUY</div><h1>Weather Scene Studio</h1><p>Drop a pin in Delaware and see how clouds, rain, and winds change hour by hour. Zoom out to follow storms on national radar.</p></header>
-<video controls playsinline preload="metadata" poster="poster.jpg" aria-label="30-second silent Weather Scene Studio demo"><source src="demo.mp4" type="video/mp4"><a href="demo.mp4">Download the demo video</a></video>
-<section aria-labelledby="trial"><h2 id="trial">Want to try it?</h2><p>Send <strong>TRIAL</strong> in a private message to the Delaware Weather Guy Facebook page and tell me which town you’d check first.</p></section>
-</main></body>
-</html>
+<body><main><header><div class="brand">DELAWARE WEATHER GUY</div><h1>Weather Scene Studio</h1><p>Click the map or drag the pin to see the weather for any spot in Delaware.</p></header>
+<section class="viewer" aria-label="Weather scene"><div class="viewtop"><form id="locationForm" class="location-search"><label class="location" for="location">Location</label><input id="location" list="delawarePlaces" placeholder="Town or latitude, longitude" value="Wilmington" autocomplete="off" maxlength="80" required><datalist id="delawarePlaces"></datalist><button type="submit">Go</button><button id="overview" type="button">Delaware map</button><span id="locationStatus" role="status"></span></form><div class="controls"><button id="radar" type="button" aria-pressed="false">Recent radar</button><button id="refreshWeather" type="button">Refresh weather</button><button id="left" type="button" aria-label="Rotate view left">←</button><button id="right" type="button" aria-label="Rotate view right">→</button><button id="play" type="button">Play forecast</button><button id="pause" type="button">Pause motion</button></div></div>
+<div id="viewport"><div id="terrain" aria-label="Interactive terrain map"></div><canvas id="scene" role="img" aria-label="Animated forecast"></canvas><button id="compass" type="button" title="Reset to north up" aria-label="Compass: reset to north up"><span class="rose" aria-hidden="true"><b>N</b><span>E</span><span>S</span><span>W</span><i></i></span></button><div id="weatherCard"><small id="weatherSource">FORECAST PREVIEW</small><strong id="weatherPeriod"></strong><span id="weatherDetails"></span></div><div id="radarInfo" hidden><div class="radar-controls"><label>Region <select id="radarRegion"><option value="conus">Lower 48</option><option value="delaware">Delaware region</option><option value="ak">Alaska</option><option value="hi">Hawaii</option></select></label><button type="button" id="radarMode" aria-pressed="false">Show HRRR forecast</button></div><strong id="radarTitle">Observed radar · IEM NEXRAD</strong><span id="radarTime" role="status"></span><small>Reflectivity · weaker to stronger</small><div class="radar-scale" aria-hidden="true"></div><a class="surface-forecast" href="https://www.wpc.ncep.noaa.gov/basicwx/basic_sfcjpg.shtml" target="_blank" rel="noopener">WPC surface lows and fronts</a></div><div id="mapStatus" role="status"></div><div id="mapTools"><button id="satellite">Satellite</button><button id="street">Map</button><button id="topView">Top</button><button id="resetView">Reset</button><button id="orbit" type="button">Rotate 360°</button><label class="tilt-control">Tilt <input id="tilt" type="range" min="0" max="67" step="1" value="57"><output id="tiltValue" for="tilt">57°</output></label></div></div>
+<div class="viewbottom"><p class="notice" role="status" id="notice"></p><div id="windLegend" aria-label="Wind arrow speeds in miles per hour" hidden></div><label class="scrub">Forecast timeline<input id="scrubber" type="range" min="0" max="0" step="1" value="0"></label><div id="stages" class="stages" aria-label="Forecast periods"></div><p id="summary" aria-live="polite"></p><p>Drag the map to pan, right-drag to tilt, or scroll to zoom. Use Delaware map to pick a spot farther away.</p></div></section></main>
+<script>
+const byId = id => document.getElementById(id);
+const canvas = byId('scene');
+const ctx = canvas.getContext('2d');
+let stages=[], current=0, time=0, last=0, timer=null;
+let paused=matchMedia('(prefers-reduced-motion: reduce)').matches;
+let w=0,h=0,scale=1;
+function resize(){
+  const rect=canvas.getBoundingClientRect();
+  scale=Math.min(devicePixelRatio||1,1.65);
+  w=rect.width; h=rect.height;
+  canvas.width=Math.round(w*scale);canvas.height=Math.round(h*scale);
+  ctx.setTransform(scale,0,0,scale,0,0);
+}
+new ResizeObserver(resize).observe(canvas);
+function select(index){
+  current=index;
+  byId('scrubber').value=index;
+  const stage=stages[index];
+  byId('summary').textContent=stage.text;
+  canvas.setAttribute('aria-label',stage.text);
+  byId('weatherPeriod').textContent=stage.label;
+  byId('weatherSource').textContent=stage.source??'WRITTEN FORECAST PREVIEW';
+  byId('weatherDetails').textContent=[stage.details,Number.isFinite(stage.cloudPercent)?'Clouds '+Math.round(stage.cloudPercent)+'%':null].filter(Boolean).join(' · ');
+  window.updateTerrainWeather?.(stage);
+  for(const button of byId('stages').children) button.setAttribute('aria-pressed',String(Number(button.dataset.stage)===index));
+}
+function stop(){
+  clearInterval(timer);timer=null;byId('play').textContent='Play forecast';
+}
+function setStages(result,index=0){
+  stages=result;stop();
+  byId('scrubber').max=stages.length-1;
+  byId('stages').replaceChildren(...stages.flatMap((stage,i)=>{
+    if(stages.length>12&&i%6!==0&&i!==1&&i!==stages.length-1)return [];
+    const button=document.createElement('button');
+    button.type='button';button.className='stage';button.textContent=stage.label;button.dataset.stage=i;
+    button.onclick=()=>{stop();select(i);};return button;
+  }));
+  byId('play').disabled=stages.length<2;
+  select(Math.min(index,stages.length-1));
+}
+byId('scrubber').oninput=event=>{stop();select(Number(event.target.value));};
+byId('play').onclick=()=>{
+  if(timer){stop();return;}
+  if(current===stages.length-1)select(0);
+  byId('play').textContent='Stop playback';
+  timer=setInterval(()=>{if(current===stages.length-1){stop();return;}select(current+1);},stages.length>12?850:3800);
+};
+function pauseLabel(){byId('pause').textContent=paused?'Resume motion':'Pause motion';}
+byId('pause').onclick=()=>{paused=!paused;pauseLabel();};
+pauseLabel();
+byId('left').onclick=()=>window.rotateTerrain?.(-15);
+byId('right').onclick=()=>window.rotateTerrain?.(15);
+function draw(){
+  if(!w||!h||!stages.length)return;
+  if(window.terrainActive)window.drawTerrainWeather?.(ctx,w,h,time,stages[current]);
+  else ctx.clearRect(0,0,w,h);
+}
+function frame(now){if(last&&!paused)time+=Math.min(.06,(now-last)/1000);last=now;draw();requestAnimationFrame(frame);}
+setStages([{label:"Loading weather",details:"Fetching NWS data…",text:"Fetching local weather.",clouds:.25,wind:0}]);resize();requestAnimationFrame(frame);
+</script><script src="https://cdn.jsdelivr.net/npm/maplibre-gl@5.6.1/dist/maplibre-gl.js" integrity="sha384-/L1njH4bbgNt9Uk3HwJ272N9fxJzRBQCxhtwGkZiqgl+Nxpq2ETUNZhNMNV1RgyW" crossorigin="anonymous" defer></script><script src="places.js" defer></script><script src="weather.js" defer></script><script src="terrain.js" defer></script></body></html>
